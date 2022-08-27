@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:flutter_downloads/src/herlpers/downloader.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as path;
@@ -31,49 +32,32 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final Dio _dio = Dio();
   String _progress = "-";
-  final String _fileUrl =
-      "https://laescuelaapp.herokuapp.com/download/fsd.docx";
-  final String _fileName = "DSCF0277.docx";
-
-  late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
-
-  @override
-  void initState() {
-    super.initState();
-
-    initStateDownlaoder(_onSelectNotification);
-  }
-
-  void initStateDownlaoder(onSelectNotification) {
-    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-    final android = AndroidInitializationSettings('@mipmap/ic_launcher');
-    final iOS = IOSInitializationSettings();
-    final initSettings = InitializationSettings(android: android, iOS: iOS);
-
-    flutterLocalNotificationsPlugin.initialize(initSettings,
-        onSelectNotification: onSelectNotification);
-  }
-
-  Future<void> _onSelectNotification(String? json) async {
-    final obj = jsonDecode(json!);
-
-    if (obj['isSuccess']) {
-      OpenFile.open(obj['filePath']);
-    } else {
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: Text('Error'),
-          content: Text('${obj['error']}'),
-        ),
-      );
+  String fileUrl =
+      "https://www.porntrex.com/get_image/14/fcfc30d39b45afa3d979760275f201af/sources/37000/37142/5107236.jpg/";
+  void _onReceiveProgress(int received, int total) {
+    print("Executada progreso");
+    print("$received, $total");
+    if (total != -1) {
+      setState(() {
+        _progress = (received / total * 100).toStringAsFixed(0) + "%";
+        print(_progress);
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    var download = Downloader(
+        context: context,
+        fileName: "example",
+        onReceiveProgress: _onReceiveProgress);
+    @override
+    void initState() {
+      super.initState();
+      download.DownloadInit();
+    }
+
     return Scaffold(
       body: Center(
         child: Column(
@@ -89,87 +73,10 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _requestPermissions,
+        onPressed: () => download.download(fileUrl),
         tooltip: 'Download',
         child: Icon(Icons.file_download),
       ),
     );
-  }
-
-  Future<Directory?> _getDownloadDirectory() async {
-    if (Platform.isAndroid) {
-      return await DownloadsPathProvider.downloadsDirectory;
-    }
-
-    // in this example we are using only Android and iOS so I can assume
-    // that you are not trying it for other platforms and the if statement
-    // for iOS is unnecessary
-
-    // iOS directory visible to user
-    return await getApplicationDocumentsDirectory();
-  }
-
-  _requestPermissions() async {
-    var permission = await Permission.storage.request();
-    if (permission.isGranted) {
-      _download(_fileName);
-    } else {
-      print("Sin permisos");
-    }
-  }
-
-  _download(fileName) async {
-    final dir = await _getDownloadDirectory();
-    print(path.join(dir!.path));
-    final savePath = path.join(dir.path, fileName);
-    await _startDownload(savePath);
-  }
-
-  void _onReceiveProgress(int received, int total) {
-    if (total != -1) {
-      setState(() {
-        _progress = (received / total * 100).toStringAsFixed(0) + "%";
-      });
-    }
-  }
-
-  Future<void> _startDownload(String savePath) async {
-    Map<String, dynamic> result = {
-      'isSuccess': false,
-      'filePath': null,
-      'error': null,
-    };
-    try {
-      final response = await _dio.download(_fileUrl, savePath,
-          onReceiveProgress: _onReceiveProgress);
-      result['isSuccess'] = response.statusCode == 200;
-      result['filePath'] = savePath;
-    } catch (ex) {
-      result['error'] = ex.toString();
-    } finally {
-      await _showNotification(result);
-    }
-  }
-
-  Future<void> _showNotification(Map<String, dynamic> downloadStatus) async {
-    final android = AndroidNotificationDetails(
-        'channel id',
-        'channel name'
-            'channel description',
-        priority: Priority.high,
-        importance: Importance.max);
-    final iOS = IOSNotificationDetails();
-    final platform = NotificationDetails(android: android, iOS: iOS);
-    final json = jsonEncode(downloadStatus);
-    final isSuccess = downloadStatus['isSuccess'];
-
-    await flutterLocalNotificationsPlugin.show(
-        0, // notification id
-        isSuccess ? 'Success' : 'Failure',
-        isSuccess
-            ? 'File has been downloaded successfully!'
-            : 'There was an error while downloading the file.',
-        platform,
-        payload: json);
   }
 }
