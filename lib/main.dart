@@ -35,12 +35,13 @@ class _MyHomePageState extends State<MyHomePage> {
   String _progress = "-";
   String fileUrl =
       "https://www.porntrex.com/get_image/14/fcfc30d39b45afa3d979760275f201af/sources/37000/37142/5107236.jpg/";
-  void _onReceiveProgress(int received, int total) {
+
+  void _onReceiveProgress(int? received, int? total) {
     print("Executada progreso");
     print("$received, $total");
     if (total != -1) {
       setState(() {
-        _progress = (received / total * 100).toStringAsFixed(0) + "%";
+        _progress = (received! / total! * 100).toStringAsFixed(0) + "%";
         print(_progress);
       });
     }
@@ -73,7 +74,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => download.download(fileUrl),
+        onPressed: () => download.download(fileUrl, _onReceiveProgress),
         tooltip: 'Download',
         child: Icon(Icons.file_download),
       ),

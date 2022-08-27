@@ -54,11 +54,10 @@ class Downloader {
     }
   }
 
-  download(String fileUrl) async {
-    print("executed");
+  download(String fileUrl, void onReceive(int? received, int? total)) async {
     var permission = await Permission.storage.request();
     if (permission.isGranted) {
-      _download(fileName, fileUrl);
+      _download(fileName, fileUrl, onReceive);
     } else {
       print("Sin permisos");
     }
@@ -77,14 +76,16 @@ class Downloader {
     return await getApplicationDocumentsDirectory();
   }
 
-  _download(fileName, fileUrl) async {
+  _download(
+      fileName, fileUrl, void onReceive(int? received, int? total)) async {
     final dir = await _getDownloadDirectory();
 
     final savePath = path.join(dir!.path, fileName);
-    await _startDownload(savePath, fileUrl);
+    await _startDownload(savePath, fileUrl, onReceive);
   }
 
-  Future<void> _startDownload(String savePath, String fileUrl) async {
+  Future<void> _startDownload(String savePath, String fileUrl,
+      void onReceive(int? received, int? total)) async {
     print("Executed");
     Map<String, dynamic> result = {
       'isSuccess': false,
@@ -94,7 +95,8 @@ class Downloader {
     try {
       print(fileUrl);
       var _dio = Dio();
-      final response = await _dio.download(fileUrl, savePath);
+      final response =
+          await _dio.download(fileUrl, savePath, onReceiveProgress: onReceive);
       result['isSuccess'] = response.statusCode == 200;
       result['filePath'] = savePath;
     } catch (ex) {
