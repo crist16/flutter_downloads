@@ -13,14 +13,8 @@ import 'package:permission_handler/permission_handler.dart';
 class Downloader {
   BuildContext context;
   late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
-  String fileName;
 
-  var onReceiveProgress;
-
-  Downloader(
-      {required BuildContext this.context,
-      required String this.fileName,
-      required onReceiveProgress}) {
+  Downloader({required BuildContext this.context}) {
     print("constructor call");
     DownloadInit();
   }
@@ -54,7 +48,8 @@ class Downloader {
     }
   }
 
-  download(String fileUrl, void onReceive(int? received, int? total)) async {
+  download(String fileUrl, void onReceive(int? received, int? total),
+      String fileName) async {
     var permission = await Permission.storage.request();
     if (permission.isGranted) {
       _download(fileName, fileUrl, onReceive);
@@ -67,12 +62,6 @@ class Downloader {
     if (Platform.isAndroid) {
       return await DownloadsPathProvider.downloadsDirectory;
     }
-
-    // in this example we are using only Android and iOS so I can assume
-    // that you are not trying it for other platforms and the if statement
-    // for iOS is unnecessary
-
-    // iOS directory visible to user
     return await getApplicationDocumentsDirectory();
   }
 

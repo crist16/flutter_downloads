@@ -32,6 +32,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  String fileName = "Cristobal";
   String _progress = "-";
   String fileUrl =
       "https://www.porntrex.com/get_image/14/fcfc30d39b45afa3d979760275f201af/sources/37000/37142/5107236.jpg/";
@@ -49,10 +50,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    var download = Downloader(
-        context: context,
-        fileName: "example",
-        onReceiveProgress: _onReceiveProgress);
+    var download = Downloader(context: context);
     @override
     void initState() {
       super.initState();
@@ -74,7 +72,8 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => download.download(fileUrl, _onReceiveProgress),
+        onPressed: () =>
+            download.download(fileUrl, _onReceiveProgress, fileName),
         tooltip: 'Download',
         child: Icon(Icons.file_download),
       ),
