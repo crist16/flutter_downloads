@@ -43,13 +43,17 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
 
+    initStateDownlaoder(_onSelectNotification);
+  }
+
+  void initStateDownlaoder(onSelectNotification) {
     flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
     final android = AndroidInitializationSettings('@mipmap/ic_launcher');
     final iOS = IOSInitializationSettings();
     final initSettings = InitializationSettings(android: android, iOS: iOS);
 
     flutterLocalNotificationsPlugin.initialize(initSettings,
-        onSelectNotification: _onSelectNotification);
+        onSelectNotification: onSelectNotification);
   }
 
   Future<void> _onSelectNotification(String? json) async {
@@ -116,8 +120,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   _download(fileName) async {
     final dir = await _getDownloadDirectory();
-
-    final savePath = path.join(dir!.path, fileName);
+    print(path.join(dir!.path));
+    final savePath = path.join(dir.path, fileName);
     await _startDownload(savePath);
   }
 
